@@ -21,11 +21,12 @@ class HttpProxyAgent extends http.Agent {
       path: `${options.host}:${options.port}`,
       setHost: false,
       headers: { connection: this.keepAlive ? 'keep-alive' : 'close', host: `${options.host}:${options.port}` },
-      agent: false
+      agent: false,
+      timeout: options.timeout || 0
     }
 
     if (this.proxy.username || this.proxy.password) {
-      const base64 = Buffer.from(`${this.proxy.username || ''}:${this.proxy.password || ''}`).toString('base64')
+      const base64 = Buffer.from(`${decodeURIComponent(this.proxy.username || '')}:${decodeURIComponent(this.proxy.password || '')}`).toString('base64')
       requestOptions.headers['proxy-authorization'] = `Basic ${base64}`
     }
 
@@ -42,6 +43,10 @@ class HttpProxyAgent extends http.Agent {
       } else {
         callback(new Error(`Bad response: ${response.statusCode}`), null)
       }
+    })
+
+    request.once('timeout', () => {
+      request.destroy(new Error('Proxy timeout'))
     })
 
     request.once('error', err => {
@@ -70,11 +75,12 @@ class HttpsProxyAgent extends https.Agent {
       path: `${options.host}:${options.port}`,
       setHost: false,
       headers: { connection: this.keepAlive ? 'keep-alive' : 'close', host: `${options.host}:${options.port}` },
-      agent: false
+      agent: false,
+      timeout: options.timeout || 0
     }
 
     if (this.proxy.username || this.proxy.password) {
-      const base64 = Buffer.from(`${this.proxy.username || ''}:${this.proxy.password || ''}`).toString('base64')
+      const base64 = Buffer.from(`${decodeURIComponent(this.proxy.username || '')}:${decodeURIComponent(this.proxy.password || '')}`).toString('base64')
       requestOptions.headers['proxy-authorization'] = `Basic ${base64}`
     }
 
@@ -93,6 +99,10 @@ class HttpsProxyAgent extends https.Agent {
       } else {
         callback(new Error(`Bad response: ${response.statusCode}`), null)
       }
+    })
+
+    request.once('timeout', () => {
+      request.destroy(new Error('Proxy timeout'))
     })
 
     request.once('error', err => {
